@@ -24,42 +24,56 @@
  */
 package org.sireum.forms
 
-import java.awt.Color
+import java.awt.{Color, Insets}
 import java.awt.event.{ActionEvent, KeyEvent}
 import javax.swing.event.{DocumentEvent, DocumentListener}
 import javax.swing.text.Document
 import javax.swing._
 
 object HAMRCodeGenFormEx {
-  def show(anchorPath: String, callback: HAMRCodeGenForm => Unit): Unit = {
+  val red: Color = new Color(0xFF, 0x60, 0x60)
+  
+  def show(anchorPath: String, insertCallback: HAMRCodeGenForm => Unit, closeCallback: => Unit): Unit = {
+    def canWrite(f: java.io.File): Boolean = {
+      var file = f
+      while (!file.exists()) {
+        file = file.getParentFile()
+      }
+      file.canWrite
+    }
     val title = "Configure HAMR Code Generation Options"
-    val dialog = new JDialog(new JFrame(title), title, true)
+    val dialog = new JDialog(new JFrame(title), title, true) {
+      override def getInsets: Insets = {
+        val s = super.getInsets
+        new Insets(s.top + 10, s.left + 10, s.bottom + 10, s.right + 10)
+      }
+    }
     val f = new HAMRCodeGenForm()
     val labelColor = f.outputLabel.getForeground
     def isValid: Boolean = {
       f.platformComboBox.getSelectedItem.toString match {
         case "JVM" =>
-          f.outputLabel.getForeground != Color.RED &&
-            f.stringSizeLabel.getForeground != Color.RED &&
-            f.seqSizeLabel.getForeground != Color.RED
-        case "macOS" | "Linux" | "Cygwin" =>
-          f.outputLabel.getForeground != Color.RED &&
-            f.stringSizeLabel.getForeground != Color.RED &&
-            f.seqSizeLabel.getForeground != Color.RED &&
-            f.cOutputLabel.getForeground != Color.RED &&
-            f.auxLabel.getForeground != Color.RED &&
-            f.seL4OutputLabel.getForeground != Color.RED &&
-            f.auxSeL4Label.getForeground != Color.RED
+          f.outputLabel.getForeground != red &&
+            f.stringSizeLabel.getForeground != red &&
+            f.seqSizeLabel.getForeground != red
+        case "macOS" | "Linux" | "Cygwin" | "seL4" =>
+          f.outputLabel.getForeground != red &&
+            f.stringSizeLabel.getForeground != red &&
+            f.seqSizeLabel.getForeground != red &&
+            f.cOutputLabel.getForeground != red &&
+            f.auxLabel.getForeground != red &&
+            f.seL4OutputLabel.getForeground != red &&
+            f.auxSeL4Label.getForeground != red
         case "seL4_Only" | "seL4_TB" =>
-          f.seL4OutputLabel.getForeground != Color.RED &&
-            f.auxSeL4Label.getForeground != Color.RED
+          f.seL4OutputLabel.getForeground != red &&
+            f.auxSeL4Label.getForeground != red
       }
     }
     def updateLabel(pred: () => Boolean, label: JLabel): Unit = {
       if (pred()) {
         label.setForeground(labelColor)
       } else {
-        label.setForeground(Color.RED)
+        label.setForeground(red)
       }
       f.okButton.setEnabled(isValid)
     }
@@ -77,7 +91,7 @@ object HAMRCodeGenFormEx {
       }
     }
     val anchor = new java.io.File(anchorPath)
-    def updateOutput(): Unit = updateLabel(() => f.outputTextField.getText.nonEmpty && new java.io.File(anchor, f.outputTextField.getText).canWrite, f.outputLabel)
+    def updateOutput(): Unit = updateLabel(() => f.outputTextField.getText.nonEmpty && canWrite(new java.io.File(anchor, f.outputTextField.getText)), f.outputLabel)
     def updatePackage(): Unit = updateLabel(() => {
       val text = f.packageTextField.getText
       text.nonEmpty &&
@@ -86,9 +100,9 @@ object HAMRCodeGenFormEx {
     }, f.packageLabel)
     def updateSeqSize(): Unit = updateLabel(() => isPosLongOpt(f.seqSizeTextField.getText.toLongOption), f.seqSizeLabel)
     def updateStringSize(): Unit = updateLabel(() => isPosLongOpt(f.stringSizeTextField.getText.toLongOption), f.stringSizeLabel)
-    def updateCOutput(): Unit = updateLabel(() => f.cOutputTextField.getText.nonEmpty && new java.io.File(f.cOutputTextField.getText).canWrite, f.cOutputLabel)
+    def updateCOutput(): Unit = updateLabel(() => f.cOutputTextField.getText.nonEmpty && canWrite(new java.io.File(f.cOutputTextField.getText)), f.cOutputLabel)
     def updateAux(): Unit = updateLabel(() => f.auxTextField.getText.isEmpty || new java.io.File(f.auxTextField.getText).exists, f.auxLabel)
-    def updateSeL4Output(): Unit = updateLabel(() => f.seL4OutputTextField.getText.nonEmpty && new java.io.File(f.seL4OutputTextField.getText).canWrite, f.seL4OutputLabel)
+    def updateSeL4Output(): Unit = updateLabel(() => f.seL4OutputTextField.getText.nonEmpty && canWrite(new java.io.File(f.seL4OutputTextField.getText)), f.seL4OutputLabel)
     def updateAuxSeL4(): Unit = updateLabel(() => f.auxSeL4TextField.getText.isEmpty || new java.io.File(f.auxSeL4TextField.getText).exists, f.auxSeL4Label)
     updateOutput()
     updatePackage()
@@ -165,11 +179,15 @@ object HAMRCodeGenFormEx {
     f.platformComboBox.setSelectedIndex(0)
     f.bitWidthComboBox.setSelectedItem("32")
     dialog.setLocationRelativeTo(null)
-    f.contentPanel.registerKeyboardAction(_ => dialog.dispose(),
-      KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-      JComponent.WHEN_IN_FOCUSED_WINDOW)
-    f.okButton.addActionListener(_ => callback(f))
-    f.cancelButton.addActionListener(_ => dialog.dispose())
+    f.okButton.addActionListener(_ => insertCallback(f))
+    f.contentPanel.registerKeyboardAction(_ => {
+      dialog.dispose()
+      closeCallback
+    }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW)
+    f.cancelButton.addActionListener(_ => {
+      dialog.dispose()
+      closeCallback
+    })
     dialog.setVisible(true)
   }
 }

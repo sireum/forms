@@ -22,7 +22,7 @@ import org.sireum.project.Project
 
 val homeDir = Os.slashDir.up.canon
 
-val proyekJvm = moduleJvmPub(
+val formsJvm = moduleJvmPub(
   id = "forms",
   baseDir = homeDir,
   jvmDeps = ISZ(),
@@ -37,6 +37,19 @@ val proyekJvm = moduleJvmPub(
   )
 )
 
-val project = Project.empty + proyekJvm
+val appJvm = moduleJvmPub(
+  id = "forms-app",
+  baseDir = homeDir / "app",
+  jvmDeps = ISZ(formsJvm.id),
+  jvmIvyDeps = ISZ(
+    "com.formdev:flatlaf:",
+    "com.formdev:flatlaf-intellij-themes:",
+    "com.github.Dansoftowner:jSystemThemeDetector:",
+    "org.slf4j:slf4j-nop:"
+  ),
+  pubOpt = None()
+)
+
+val project = Project.empty + formsJvm + appJvm
 
 projectCli(Os.cliArgs, project)

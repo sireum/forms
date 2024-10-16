@@ -24,10 +24,10 @@
  */
 package org.sireum.forms
 
-import java.awt.event.{MouseEvent, MouseListener}
-import java.awt.{Color, Cursor}
+import java.awt.event.{KeyEvent, MouseEvent, MouseListener}
+import java.awt.{BorderLayout, Color, Cursor, Insets}
 import javax.swing.event.{DocumentEvent, DocumentListener}
-import javax.swing.{JComponent, SpinnerNumberModel}
+import javax.swing.{JComponent, JDialog, JFrame, JPanel, KeyStroke, SpinnerNumberModel}
 
 object LogikaFormEx {
 
@@ -112,6 +112,38 @@ object LogikaFormEx {
       case _: Throwable => None
     }
 
+  def show[T](param: Parameter[T], insertCallback: () => Unit, closeCallback: => Unit): Unit = {
+    val title = "Configure HAMR Code Generation Options"
+    val dialog = new JDialog(new JFrame(title), title, true) {
+      override def getInsets: Insets = {
+        val s = super.getInsets
+        new Insets(s.top + 10, s.left + 10, s.bottom + 10, s.right + 10)
+      }
+    }
+    val f = new LogikaFormEx[T] {
+      override def parameter: Parameter[T] = param
+    }
+    f.init()
+    f.updateUI()
+    val fh = new HAMRCodeGenForm()
+    val panel = new JPanel
+    panel.setLayout(new BorderLayout())
+    panel.add(f.logikaPanel, BorderLayout.CENTER)
+    panel.add(fh.bottomPanel, BorderLayout.SOUTH)
+    fh.okButton.addActionListener(_ => insertCallback())
+    fh.cancelButton.addActionListener(_ => {
+      dialog.dispose()
+      closeCallback
+    })
+    panel.registerKeyboardAction(_ => {
+      dialog.dispose()
+      closeCallback
+    }, KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), JComponent.WHEN_IN_FOCUSED_WINDOW)
+    dialog.add(panel)
+    dialog.pack()
+    dialog.setLocationRelativeTo(null)
+    dialog.setVisible(true)
+  }
 }
 
 import org.sireum.forms.LogikaFormEx._
