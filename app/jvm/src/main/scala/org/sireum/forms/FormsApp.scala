@@ -28,15 +28,14 @@ import com.formdev.flatlaf.intellijthemes.{FlatDarkFlatIJTheme, FlatLightFlatIJT
 import com.formdev.flatlaf.FlatLaf
 import com.jthemedetecor.OsThemeDetector
 
-import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
-
+import java.net.URLClassLoader
 
 object FormsApp extends App {
   lazy val sireumJar: java.io.File = Option(System.getenv("SIREUM_HOME")) match {
     case Some(homePath) => new java.io.File(new java.io.File(new java.io.File(homePath), "bin"), "sireum.jar")
     case _ => throw new Error("Please define SIREUM_HOME environment variable")
   }
-  lazy val cl: ClassLoader = new URLClassLoader(Seq(sireumJar.toURI.toURL), getClass.getClassLoader)
+  lazy val cl: ClassLoader = new URLClassLoader(Array(sireumJar.toURI.toURL), getClass.getClassLoader)
   lazy val sireumHome = invokeStatic("org.sireum.Os", "path", sireumJar.getParentFile.getParentFile.getAbsolutePath)
 
   def init(isDark: Boolean = OsThemeDetector.getDetector.isDark): Unit = {
@@ -84,6 +83,38 @@ object FormsApp extends App {
   }
 
   def run(): Unit = {
+    def hamr(p: String, cancelCallback: () => Unit = () => System.exit(0)): Unit = {
+      val file = new java.io.File(p).getCanonicalFile
+      HAMRCodeGenFormEx.show(file.getParentFile.getAbsolutePath, form => insert(file, form), cancelCallback())
+    }
+    def logika(p: String, cancelCallback: () => Unit = () => System.exit(0)): Unit = {
+      val file = new java.io.File(p).getCanonicalFile
+      val param = new LogikaFormEx.Parameter[Any] {
+        override def defaultTimeout: Int = 2000
+        override def defaultRLimit: Long = 2000000
+        override def defaultSmt2ValidOpts: String = "cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant"
+        override def defaultSmt2SatOpts: String = "z3"
+        override def parseConfigs(nameExePathMap: Map[String, String], isSat: Boolean, options: String): Either[Any, String] = {
+          var map = invokeStatic("org.sireum.HashMap", "empty")
+          for ((k, v) <- nameExePathMap.toSeq) {
+            map = invokeInstance("org.sireum.HashMap", "+", map, (construct("org.sireum.String", k), construct("org.sireum.String", v)))
+          }
+          val either = invokeStatic("org.sireum.logika.Smt2", "parseConfigs", map, isSat, options)
+          val r = if (either.getClass.getName == "org.sireum.Either$Left") Left(invokeInstance("org.sireum.Either$Left", "value", either))
+          else Right(invokeInstance("org.sireum.Either$Right", "value", either).toString)
+          r
+        }
+        override def hasSolver(solver: String): Boolean = {
+          val map = invokeStatic("org.sireum.logika.Smt2Invoke", "nameExePathMap", sireumHome)
+          val key = construct("org.sireum.String", solver)
+          val exePathOpt = invokeInstance("org.sireum.HashMap", "get", map, key)
+          if (exePathOpt.getClass.getName == "org.sireum.None") return false
+          val exePath = invokeInstance("org.sireum.Some", "get", exePathOpt)
+          new java.io.File(exePath.toString).exists
+        }
+      }
+      LogikaFormEx.show(param, () => insert(file), cancelCallback())
+    }
     args match {
       case Array("hamr", p, _*) if args.length <= 3 && new java.io.File(p).isFile =>
         if (args.length == 3) {
@@ -91,42 +122,42 @@ object FormsApp extends App {
         } else {
           init()
         }
-        val file = new java.io.File(p).getCanonicalFile
-        HAMRCodeGenFormEx.show(file.getParentFile.getAbsolutePath, form => insert(file, form), System.exit(0))
+        hamr(p)
       case Array("logika", p, _*) if args.length <= 3 && new java.io.File(p).isFile =>
         if (args.length == 3) {
           init(args(2) == "dark")
         } else {
           init()
         }
-        val file = new java.io.File(p).getCanonicalFile
-        val param = new LogikaFormEx.Parameter[Any] {
-          override def defaultTimeout: Int = 2000
-          override def defaultRLimit: Long = 2000000
-          override def defaultSmt2ValidOpts: String = "cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant"
-          override def defaultSmt2SatOpts: String = "z3"
-          override def parseConfigs(nameExePathMap: Map[String, String], isSat: Boolean, options: String): Either[Any, String] = {
-            var map = invokeStatic("org.sireum.HashMap", "empty")
-            for ((k, v) <- nameExePathMap.toSeq) {
-              map = invokeInstance("org.sireum.HashMap", "+", map, (construct("org.sireum.String", k), construct("org.sireum.String", v)))
-            }
-            val either = invokeStatic("org.sireum.logika.Smt2", "parseConfigs", map, isSat, options)
-            val r = if (either.getClass.getName == "org.sireum.Either$Left") Left(invokeInstance("org.sireum.Either$Left", "value", either))
-            else Right(invokeInstance("org.sireum.Either$Right", "value", either).toString)
-            r
-          }
-          override def hasSolver(solver: String): Boolean = {
-            val map = invokeStatic("org.sireum.logika.Smt2Invoke", "nameExePathMap", sireumHome)
-            val key = construct("org.sireum.String", solver)
-            val exePathOpt = invokeInstance("org.sireum.HashMap", "get", map, key)
-            if (exePathOpt.getClass.getName == "org.sireum.None") return false
-            val exePath = invokeInstance("org.sireum.Some", "get", exePathOpt)
-            new java.io.File(exePath.toString).exists
+        logika(p)
+      case Array(p) if new java.io.File(p).isFile =>
+        init()
+        print("Enter [h]amr, [l]ogika, [d]ark, l[i]ght, [e]xit: ")
+        var line = Console.in.readLine().trim()
+        var exit = line == "e"
+        while (!exit) {
+          line match {
+            case "h" =>
+              line = ""
+              hamr(p, () => ())
+            case "l" =>
+              line = ""
+              logika(p, () => ())
+            case "d" =>
+              line = ""
+              init(isDark = true)
+            case "i" =>
+              line = ""
+              init(isDark = false)
+            case _ =>
+              print("Enter [h]amr, [l]ogika, [d]ark, l[i]ght, [e]xit: ")
+              line = Console.in.readLine().trim()
+              exit = line == "e"
           }
         }
-        LogikaFormEx.show(param, () => insert(file), System.exit(0))
+        System.exit(0)
       case _ =>
-        println("Usage: ( hamr | logika ) <file> [ dark | light ]")
+        println("Usage: [ hamr | logika ] <file> [ dark | light ]")
         System.exit(0)
     }
 

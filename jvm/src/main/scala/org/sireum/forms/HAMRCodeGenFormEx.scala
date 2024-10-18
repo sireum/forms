@@ -37,7 +37,10 @@ object HAMRCodeGenFormEx {
     def canWrite(f: java.io.File): Boolean = {
       var file = f
       while (!file.exists()) {
-        file = file.getParentFile()
+        file = file.getParentFile
+        if (file == null) {
+          return false
+        }
       }
       file.canWrite
     }
