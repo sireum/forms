@@ -45,7 +45,8 @@ val appJvm = moduleJvmPub(
     "com.formdev:flatlaf:",
     "com.formdev:flatlaf-intellij-themes:",
     "com.github.Dansoftowner:jSystemThemeDetector:",
-    "org.slf4j:slf4j-nop:"
+    "org.slf4j:slf4j-nop:",
+    "org.sireum.kekinian::cli:"
   ),
   pubOpt = None()
 )

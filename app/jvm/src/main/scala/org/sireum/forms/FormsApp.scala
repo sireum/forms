@@ -31,47 +31,8 @@ import com.jthemedetecor.OsThemeDetector
 import java.net.URLClassLoader
 
 object FormsApp extends App {
-  lazy val sireumJar: java.io.File = Option(System.getenv("SIREUM_HOME")) match {
-    case Some(homePath) => new java.io.File(new java.io.File(new java.io.File(homePath), "bin"), "sireum.jar")
-    case _ => throw new Error("Please define SIREUM_HOME environment variable")
-  }
-  lazy val cl: ClassLoader = new URLClassLoader(Array(sireumJar.toURI.toURL), getClass.getClassLoader)
-  lazy val sireumHome = invokeStatic("org.sireum.Os", "path", sireumJar.getParentFile.getParentFile.getAbsolutePath)
-
   def init(isDark: Boolean = OsThemeDetector.getDetector.isDark): Unit = {
     FlatLaf.setup(if (isDark) new FlatDarkFlatIJTheme else new FlatLightFlatIJTheme)
-  }
-
-  def encodeName(name: String): String =
-    name.replace("+", "$plus").replace("-", "$minus")
-
-  def construct(className: String, args: Any*): Any = {
-    val c = cl.loadClass(className)
-    val constructor = c.getConstructors()(0)
-    constructor.newInstance(args: _*)
-  }
-
-  def invokeStatic(className: String, methodName: String, args: Any*): Any = {
-    val c = cl.loadClass(s"$className$$")
-    val companion = c.getField("MODULE$").get(null)
-    val name = encodeName(methodName)
-    for (m <- c.getMethods.toSeq) {
-      if (m.getName == name) {
-        return m.invoke(companion, args: _*)
-      }
-    }
-    throw new Error(s"Could not find $className.$methodName")
-  }
-
-  def invokeInstance(className: String, methodName: String, receiver: Any, args: Any*): Any = {
-    val c = cl.loadClass(className)
-    val name = encodeName(methodName)
-    for (m <- c.getMethods.toSeq) {
-      if (m.getName == name) {
-        return m.invoke(receiver, args: _*)
-      }
-    }
-    throw new Error(s"Could not find $className#$methodName")
   }
 
   def insert(file: java.io.File, form: HAMRCodeGenForm): Unit = {
@@ -95,23 +56,17 @@ object FormsApp extends App {
         override def defaultSmt2ValidOpts: String = "cvc4,--full-saturate-quant; z3; cvc5,--full-saturate-quant"
         override def defaultSmt2SatOpts: String = "z3"
         override def parseConfigs(nameExePathMap: Map[String, String], isSat: Boolean, options: String): Either[Any, String] = {
-          var map = invokeStatic("org.sireum.HashMap", "empty")
+          import org.sireum._
+          var map = HashMap.empty[String, String]
           for ((k, v) <- nameExePathMap.toSeq) {
-            map = invokeInstance("org.sireum.HashMap", "+", map, (construct("org.sireum.String", k), construct("org.sireum.String", v)))
+            map = map + k ~> v
           }
-          val either = invokeStatic("org.sireum.logika.Smt2", "parseConfigs", map, isSat, options)
-          val r = if (either.getClass.getName == "org.sireum.Either$Left") Left(invokeInstance("org.sireum.Either$Left", "value", either))
-          else Right(invokeInstance("org.sireum.Either$Right", "value", either).toString)
-          r
+          org.sireum.logika.Smt2.parseConfigs(map, isSat, options) match {
+            case Either.Left(l) => scala.Left(l)
+            case Either.Right(r) => scala.Right(r.toString)
+          }
         }
-        override def hasSolver(solver: String): Boolean = {
-          val map = invokeStatic("org.sireum.logika.Smt2Invoke", "nameExePathMap", sireumHome)
-          val key = construct("org.sireum.String", solver)
-          val exePathOpt = invokeInstance("org.sireum.HashMap", "get", map, key)
-          if (exePathOpt.getClass.getName == "org.sireum.None") return false
-          val exePath = invokeInstance("org.sireum.Some", "get", exePathOpt)
-          new java.io.File(exePath.toString).exists
-        }
+        override def hasSolver(solver: String): Boolean = LogikaFormEx.nameExePathMap.contains(solver)
       }
       LogikaFormEx.show(param, () => insert(file), cancelCallback())
     }

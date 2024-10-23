@@ -42,6 +42,13 @@ object LogikaFormEx {
     def hasSolver(solver: String): Boolean
   }
 
+  val nameExePathMap: Map[String, String] = Map(
+    "alt-ergo" -> "alt-ergo",
+    "cvc4" -> "cvc4",
+    "cvc5" -> "cvc5",
+    "z3" ->   "z3"
+  )
+
   var backgroundAnalysis: Boolean = true
   var timeout: Int = 2000
   var rlimit: Long = 2000000
@@ -289,13 +296,6 @@ abstract class LogikaFormEx[T] extends LogikaForm {
       fpRTNRadioButton.setEnabled(enabled)
       fpRTZRadioButton.setEnabled(enabled)
     }
-
-    val nameExePathMap = Map(
-      "alt-ergo" -> "alt-ergo",
-      "cvc4" -> "cvc4",
-      "cvc5" -> "cvc5",
-      "z3" ->   "z3"
-    )
 
     def updateSmt2ValidOpts(): Unit = {
       val text = smt2ValidConfigsTextArea.getText
