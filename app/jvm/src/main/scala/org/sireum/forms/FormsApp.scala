@@ -28,15 +28,29 @@ import com.formdev.flatlaf.intellijthemes.{FlatDarkFlatIJTheme, FlatLightFlatIJT
 import com.formdev.flatlaf.FlatLaf
 import com.jthemedetecor.OsThemeDetector
 
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
+import java.nio.file.Files
+import javax.swing.{JFrame, JOptionPane}
 
 object FormsApp extends App {
   def init(isDark: Boolean = OsThemeDetector.getDetector.isDark): Unit = {
     FlatLaf.setup(if (isDark) new FlatDarkFlatIJTheme else new FlatLightFlatIJTheme)
   }
 
-  def insert(file: java.io.File, form: HAMRCodeGenForm): Unit = {
-    // TODO: insert HAMR config
+  def insertHamrCodegen(file: java.io.File)(toPrepend: String): Unit = {
+    try {
+      val initContent = Files.readString(file.toPath)
+      val newContent =
+        s"""//@ HAMR: $toPrepend
+           |$initContent""".stripMargin
+      Files.writeString(file.toPath, newContent)
+      JOptionPane.showMessageDialog(new JFrame(), "Entry inserted successfully", "Success",
+        JOptionPane.INFORMATION_MESSAGE)
+    } catch {
+      case m: Throwable =>
+        JOptionPane.showMessageDialog(new JFrame(), m.getMessage, "Error", JOptionPane.ERROR_MESSAGE)
+    }
   }
 
   def insert(file: java.io.File): Unit = {
@@ -109,8 +123,50 @@ object FormsApp extends App {
 
   def run(): Unit = {
     def hamr(p: String, cancelCallback: () => Unit = () => System.exit(0)): Unit = {
+
       val file = new java.io.File(p).getCanonicalFile
-      HAMRCodeGenFormEx.show(file.getParentFile.getAbsolutePath, form => insert(file, form), cancelCallback())
+
+      var initialStore: Map[Predef.String, HAMRCodeGenFormEx.CodegenOptionStore] = Map.empty
+
+      import org.sireum._
+      val defaultOptions: Cli.SireumHamrSysmlCodegenOption = Cli(Os.pathSepChar).parseSireumHamrSysmlCodegen(ISZ(file.getAbsolutePath), 0).get.asInstanceOf[Cli.SireumHamrSysmlCodegenOption]
+
+      val optionMap = LibUtil.mineOptions(Files.readString(file.toPath))
+      optionMap.get(cli.HAMR.toolName) match {
+        case Some(fileOptionStrings: ISZ[String]) =>
+          for (fileOptionString <- fileOptionStrings) {
+            val oldOut = System.out
+            val out = new ByteArrayOutputStream()
+            System.setOut(new PrintStream(out))
+            val splits = ops.StringOps(ops.StringOps(ops.StringOps(ops.StringOps(fileOptionString).replaceAllChars('␣', ' ')).replaceAllLiterally("  ", " ")).replaceAllLiterally("\t", " ")).split(c => c == C(' '))
+            Cli(Os.pathSepChar).parseSireumHamrSysmlCodegen(splits, 0) match {
+              case Some(fileOption: Cli.SireumHamrSysmlCodegenOption) =>
+                cli.HAMR.mergeOptionsM(defaultOptions, fileOption, splits) match {
+                  case Either.Left((mergedOptions, userModifiedKeys))=>
+                    val platform = HAMRUtil.decasePlatform(mergedOptions.platform)
+                    if (!initialStore.contains(platform)) {
+                      initialStore = initialStore + (platform -> HAMRUtil.buildHamrOptionStore(mergedOptions))
+                    }
+                  case Either.Right(msg) =>
+                    JOptionPane.showMessageDialog(new JFrame(), msg, "", JOptionPane.ERROR_MESSAGE)
+                    System.exit(1)
+                }
+              case _ =>
+                JOptionPane.showMessageDialog(new JFrame(), s"Invalid file options:\n${fileOptionString}\n${out.toString}", "Error", JOptionPane.ERROR_MESSAGE)
+                System.exit(1)
+            }
+            System.setOut(oldOut)
+          }
+        case _ =>
+      }
+
+      for (platform <- Cli.SireumHamrSysmlCodegenHamrPlatform.elements) {
+        if (!initialStore.contains(HAMRUtil.decasePlatform(platform))) {
+          initialStore = initialStore + (HAMRUtil.decasePlatform(platform) -> HAMRUtil.buildHamrOptionStore(defaultOptions(platform = platform)))
+        }
+      }
+
+      HAMRCodeGenFormEx.show(file.getParentFile.getAbsolutePath, initialStore, insertHamrCodegen(file) _, cancelCallback())
     }
     def logikaForm(p: String, cancelCallback: () => Unit = () => System.exit(0)): Unit = {
       import org.sireum._
