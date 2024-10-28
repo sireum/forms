@@ -26,7 +26,7 @@ package org.sireum.forms
 
 import java.awt.event.{KeyEvent, MouseEvent, MouseListener}
 import java.awt.{BorderLayout, Color, Cursor, Insets}
-import javax.swing.event.{DocumentEvent, DocumentListener}
+import javax.swing.event.{ChangeListener, DocumentEvent, DocumentListener}
 import javax.swing.{JComponent, JDialog, JFrame, JPanel, KeyStroke, SpinnerNumberModel}
 
 object LogikaFormEx {
@@ -137,11 +137,28 @@ object LogikaFormEx {
     panel.setLayout(new BorderLayout())
     panel.add(f.logikaPanel, BorderLayout.CENTER)
     panel.add(fh.bottomPanel, BorderLayout.SOUTH)
+
     fh.okButton.addActionListener(_ => insertCallback())
     fh.cancelButton.addActionListener(_ => {
       dialog.dispose()
       closeCallback
     })
+    val okListener: ChangeListener = _ => fh.okButton.setEnabled(f.isUIModified)
+    def rec(component: JComponent): Unit = {
+      try {
+        val m = component.getClass.getMethod("addChangeListener", classOf[ChangeListener])
+        m.invoke(component, okListener)
+      } catch {
+        case _: Throwable =>
+      }
+      for (c <- component.getComponents) {
+        c match {
+          case c: JComponent => rec(c)
+          case _ =>
+        }
+      }
+    }
+    rec(f.logikaPanel)
     panel.registerKeyboardAction(_ => {
       dialog.dispose()
       closeCallback
