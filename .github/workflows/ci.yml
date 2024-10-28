@@ -1,0 +1,24 @@
+name: ci
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clean
+        run: |
+          rm -fR "$GITHUB_WORKSPACE/Forms" "$GITHUB_WORKSPACE/Sireum"
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          path: Forms
+      - name: Build
+        run: |
+          export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
+          git clone --depth=1 https://github.com/sireum/kekinian Sireum
+          Sireum/bin/init.sh
+          Sireum/bin/sireum proyek assemble --main org.sireum.forms.FormsApp --exclude-jar-deps asm:,unmanaged:,org.scala-lang: Forms
