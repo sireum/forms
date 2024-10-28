@@ -21,6 +21,11 @@ import org.sireum.project.ProjectUtil._
 import org.sireum.project.Project
 
 val homeDir = Os.slashDir.up.canon
+val sireumJar = Os.path(Os.env("SIREUM_HOME").get) / "bin" / "sireum.jar"
+
+if (!sireumJar.exists) {
+  halt(s"$sireumJar does not exist")
+}
 
 val formsJvm = moduleJvmPub(
   id = "forms",
@@ -46,7 +51,7 @@ val appJvm = moduleJvmPub(
     "com.formdev:flatlaf-intellij-themes:",
     "com.github.Dansoftowner:jSystemThemeDetector:",
     "org.slf4j:slf4j-nop:",
-    "org.sireum.kekinian::cli:"
+    sireumJar.toUri
   ),
   pubOpt = None()
 )
