@@ -26,8 +26,8 @@ package org.sireum.forms
 
 import java.awt.event.{KeyEvent, MouseEvent, MouseListener}
 import java.awt.{BorderLayout, Color, Cursor, Insets}
-import javax.swing.event.{ChangeListener, DocumentEvent, DocumentListener}
-import javax.swing.{JComponent, JDialog, JFrame, JPanel, KeyStroke, SpinnerNumberModel}
+import javax.swing.event.{DocumentEvent, DocumentListener}
+import javax.swing.{JButton, JCheckBox, JComboBox, JComponent, JDialog, JFrame, JPanel, JRadioButton, JSpinner, JTextArea, JTextField, KeyStroke, SpinnerNumberModel}
 
 object LogikaFormEx {
 
@@ -119,6 +119,33 @@ object LogikaFormEx {
       case _: Throwable => None
     }
 
+  def addChangeListenerRec(component: JComponent, listener: () => Unit): Unit = {
+    component match {
+      case component: JRadioButton => component.addActionListener(_ => listener())
+      case component: JButton => component.addChangeListener(_ => listener())
+      case component: JCheckBox => component.addChangeListener(_ => listener())
+      case component: JSpinner => component.addChangeListener(_ => listener())
+      case component: JComboBox[_] => component.addActionListener(_ => listener())
+      case component: JTextField => component.getDocument.addDocumentListener(new DocumentListener {
+        override def insertUpdate(e: DocumentEvent): Unit = listener()
+        override def removeUpdate(e: DocumentEvent): Unit = listener()
+        override def changedUpdate(e: DocumentEvent): Unit = listener()
+      })
+      case component: JTextArea => component.getDocument.addDocumentListener(new DocumentListener {
+        override def insertUpdate(e: DocumentEvent): Unit = listener()
+        override def removeUpdate(e: DocumentEvent): Unit = listener()
+        override def changedUpdate(e: DocumentEvent): Unit = listener()
+      })
+      case _ =>
+    }
+    for (c <- component.getComponents) {
+      c match {
+        case c: JComponent => addChangeListenerRec(c, listener)
+        case _ =>
+      }
+    }
+  }
+
   def show[T](param: Parameter[T], insertCallback: () => Unit, closeCallback: => Unit): Unit = {
     val title = "Configure HAMR Code Generation Options"
     val dialog = new JDialog(new JFrame(title), title, true) {
@@ -132,6 +159,16 @@ object LogikaFormEx {
     }
     f.init()
     f.updateUI()
+    f.infoFlowCheckBox.setVisible(false)
+    f.hintCheckBox.setVisible(false)
+    f.hintUnicodeCheckBox.setVisible(false)
+    f.hintMaxColumnLabel.setVisible(false)
+    f.hintMaxColumnTextField.setVisible(false)
+    f.coverageCheckBox.setVisible(false)
+    f.coverageIntensitySpinner.setVisible(false)
+    f.inscribeSummoningsCheckBox.setVisible(false)
+    f.transitionCacheCheckBox.setVisible(false)
+    f.smt2CacheCheckBox.setVisible(false)
     val fh = new HAMRCodeGenForm()
     val panel = new JPanel
     panel.setLayout(new BorderLayout())
@@ -143,22 +180,7 @@ object LogikaFormEx {
       dialog.dispose()
       closeCallback
     })
-    val okListener: ChangeListener = _ => fh.okButton.setEnabled(f.isUIModified)
-    def rec(component: JComponent): Unit = {
-      try {
-        val m = component.getClass.getMethod("addChangeListener", classOf[ChangeListener])
-        m.invoke(component, okListener)
-      } catch {
-        case _: Throwable =>
-      }
-      for (c <- component.getComponents) {
-        c match {
-          case c: JComponent => rec(c)
-          case _ =>
-        }
-      }
-    }
-    rec(f.logikaPanel)
+    addChangeListenerRec(f.logikaPanel, () => fh.okButton.setEnabled(f.isUIModified))
     panel.registerKeyboardAction(_ => {
       dialog.dispose()
       closeCallback
@@ -328,12 +350,6 @@ abstract class LogikaFormEx[T] extends LogikaForm {
       smt2SatConfigsTextArea.setToolTipText(if (validSmt2SatOpts) "OK" else "Invalid configurations")
     }
 
-    def updateBranchPar(): Unit = {
-      val enabled = !branchParDisabledRadioButton.isSelected
-      branchParCoresLabel.setEnabled(enabled)
-      branchParCoresSpinner.setEnabled(enabled)
-    }
-
     def updateInfoFlow(): Unit = {
       val enabled = !infoFlowCheckBox.isSelected
       splitMatchCasesCheckBox.setEnabled(enabled)
@@ -416,8 +432,8 @@ abstract class LogikaFormEx[T] extends LogikaForm {
       override def removeUpdate(e: DocumentEvent): Unit = updateRecursionBound()
     })
 
-    //    symExeRadioButton.addChangeListener(_ => updateSymExe())
-    //    unrollingSymExeRadioButton.addChangeListener(_ => updateSymExe())
+    //    symExeRadioButton.addActionListener(_ => updateSymExe())
+    //    unrollingSymExeRadioButton.addActionListener(_ => updateSymExe())
     hintCheckBox.addChangeListener(_ => updateHints())
 
     useRealCheckBox.addChangeListener(_ => updateFPRoundingMode())
@@ -452,10 +468,6 @@ abstract class LogikaFormEx[T] extends LogikaForm {
 
     inscribeSummoningsCheckBox.addChangeListener(_ => updateSummoning())
 
-    branchParDisabledRadioButton.addChangeListener(_ => updateBranchPar())
-    branchParReturnsRadioButton.addChangeListener(_ => updateBranchPar())
-    branchParAllRadioButton.addChangeListener(_ => updateBranchPar())
-
     branchParCoresLabel.setText(s"CPU cores (max: ${Runtime.getRuntime.availableProcessors})")
     branchParCoresSpinner.setModel(new SpinnerNumberModel(branchParCores, 1, Runtime.getRuntime.availableProcessors, 1))
     coverageIntensitySpinner.setModel(new SpinnerNumberModel(coverageIntensity, 0, 255, 1))
@@ -477,7 +489,6 @@ abstract class LogikaFormEx[T] extends LogikaForm {
     updateHints()
     updateHintMaxColumn()
     updateFPRoundingMode()
-    updateBranchPar()
     updateSummoning()
     updateInfoFlow()
     updateCoverage()
