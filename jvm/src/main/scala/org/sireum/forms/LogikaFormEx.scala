@@ -174,7 +174,7 @@ object LogikaFormEx {
     panel.setLayout(new BorderLayout())
     panel.add(f.logikaPanel, BorderLayout.CENTER)
     panel.add(fh.bottomPanel, BorderLayout.SOUTH)
-
+    fh.okButton.setEnabled(false)
     fh.okButton.addActionListener(_ => insertCallback())
     fh.cancelButton.addActionListener(_ => {
       dialog.dispose()
