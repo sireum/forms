@@ -159,6 +159,7 @@ object LogikaFormEx {
     }
     f.init()
     f.updateUI()
+    f.backgroundCheckBox.setVisible(false)
     f.infoFlowCheckBox.setVisible(false)
     f.hintCheckBox.setVisible(false)
     f.hintUnicodeCheckBox.setVisible(false)

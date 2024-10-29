@@ -68,7 +68,7 @@ object FormsApp extends App {
     var config = logika.options.OptionsUtil.toConfig(
       server.service.AnalysisService.defaultConfig, maxCores, "default", map, "").left
     if (LogikaFormEx.backgroundAnalysis) {
-      config = config(background = logika.Config.BackgroundMode.Save)
+      config = config(background = logika.Config.BackgroundMode.Type)
     } else {
       config = config(background = logika.Config.BackgroundMode.Disabled)
     }
@@ -107,7 +107,7 @@ object FormsApp extends App {
     config = config(rwPar = LogikaFormEx.rwPar)
     config = config(rwEvalTrace = LogikaFormEx.rwEvalTrace)
     val p = Os.path(file.getCanonicalPath)
-    var lines = ISZ(p.readLineStream.take(1).string)
+    var lines = p.readLineStream.take(1).toISZ
     lines = lines :+ logika.options.OptionsUtil.fromConfig(p.ext, maxCores, map, config)
     lines = lines ++ p.readLineStream.drop(1).toISZ
     p.writeOver(st"${(lines, Os.lineSep)}".render)
