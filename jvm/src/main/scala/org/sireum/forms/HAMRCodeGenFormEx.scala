@@ -57,8 +57,8 @@ object HAMRCodeGenFormEx {
                                 val slangOutputDirDefault: String = "",
                                 var slangOutputDirValid: Boolean = true,
 
-                                var packageName: String = "",
-                                val packageNameDefault: String = "",
+                                var packageName: String = "base",
+                                val packageNameDefault: String = "base",
                                 var packageNameValid: Boolean = true,
 
                                 var slangAuxCodeDirs: String = "",
@@ -152,15 +152,15 @@ object HAMRCodeGenFormEx {
         new Insets(s.top + 10, s.left + 10, s.bottom + 10, s.right + 10)
       }
     }
-    val f = new HAMRCodeGenFormEx(anchorPath)
-    f.pack = () => {
-      /*
-      dialog.remove(f.contentPanel)
+    val f = new HAMRCodeGenFormEx(anchorPath, () => {
       dialog.pack()
-      dialog.add(f.contentPanel)
-      dialog.pack()
-      */
-    }
+
+      // the border (as set by the insets) would not repaint after making
+      // platform options visible/invisible until you manually resized the
+      // jdialog box.  A work-around is to force the jdialog to resize.
+      dialog.setSize(dialog.getSize.width - 20, dialog.getSize.height - 20)
+      dialog.setSize(dialog.getSize.width + 20, dialog.getSize.height + 20)
+    })
 
     addChangeListenerRec(f.codegenPanel, () => f.okButton.setEnabled(f.isValid() && f.hasChanges()))
 
@@ -189,8 +189,7 @@ object HAMRCodeGenFormEx {
   }
 }
 
-class HAMRCodeGenFormEx(val anchorPath: String) extends HAMRCodeGenForm {
-  var pack: () => Unit = _
+class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCodeGenForm {
   var initialStore: Map[String, HAMRCodeGenFormEx.CodegenOptionStore] = _
   var viewStore: Map[String, HAMRCodeGenFormEx.CodegenOptionStore] = _
 
