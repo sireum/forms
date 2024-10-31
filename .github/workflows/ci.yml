@@ -18,6 +18,10 @@ jobs:
           path: Forms
       - name: Build
         run: |
+          wget https://github.com/sireum/rolling/releases/download/m2/osthemedetector.tar.gz
+          tar xf osthemedetector.tar.gz
+          mkdir $HOME/.m2/repository/
+          mv com $HOME/.m2/repository/
           export SIREUM_HOME="$GITHUB_WORKSPACE/Sireum"
           git clone --depth=1 https://github.com/sireum/kekinian Sireum
           Sireum/bin/init.sh
