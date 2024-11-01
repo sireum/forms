@@ -143,7 +143,8 @@ object HAMRCodeGenFormEx {
   def show(anchorPath: String,
            initialStore: Map[String, CodegenOptionStore],
            insertCallback: String => Unit,
-           closeCallback: => Unit): Unit = {
+           closeCallback: => Unit,
+           themeCallback: () => Unit): Unit = {
 
     val title = "Configure HAMR Code Generation Options"
     val dialog = new JDialog(new JFrame(title), title, true) {
@@ -163,7 +164,7 @@ object HAMRCodeGenFormEx {
     })
 
     addChangeListenerRec(f.codegenPanel, () => f.okButton.setEnabled(f.isValid() && f.hasChanges()))
-
+    f.themeButton.addActionListener(_ => themeCallback())
     f.init(initialStore)
     dialog.add(f.codegenPanel)
     dialog.pack()

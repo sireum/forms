@@ -32,8 +32,12 @@ import java.nio.file.Files
 import javax.swing.{JFrame, JOptionPane}
 
 object FormsApp extends App {
-  def init(isDark: Boolean = true): Unit = {
+  var isDark: Boolean = true
+
+  def init(isDark: Boolean = FormsApp.isDark): Unit = {
+    FormsApp.isDark = isDark
     FlatLaf.setup(if (isDark) new FlatDarkFlatIJTheme else new FlatLightFlatIJTheme)
+    FlatLaf.updateUI()
   }
 
   def insertHamrCodegen(file: java.io.File)(toPrepend: String): Unit = {
@@ -164,7 +168,8 @@ object FormsApp extends App {
         }
       }
 
-      HAMRCodeGenFormEx.show(file.getParentFile.getAbsolutePath, initialStore, insertHamrCodegen(file) _, cancelCallback())
+      HAMRCodeGenFormEx.show(file.getParentFile.getAbsolutePath, initialStore, insertHamrCodegen(file) _,
+        cancelCallback(), () => init(!isDark))
     }
     def logikaForm(p: String, cancelCallback: () => Unit = () => System.exit(0)): Unit = {
       import org.sireum._
@@ -237,7 +242,7 @@ object FormsApp extends App {
         }
         override def hasSolver(solver: Predef.String): Boolean = LogikaFormEx.nameExePathMap.contains(solver)
       }
-      LogikaFormEx.show(param, () => insert(new java.io.File(p).getCanonicalFile), cancelCallback())
+      LogikaFormEx.show(param, () => insert(new java.io.File(p).getCanonicalFile), cancelCallback(), () => init(!isDark))
     }
     args match {
       case Array("hamr", p, _*) if args.length <= 3 && new java.io.File(p).isFile =>

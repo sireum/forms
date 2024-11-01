@@ -146,7 +146,7 @@ object LogikaFormEx {
     }
   }
 
-  def show[T](param: Parameter[T], insertCallback: () => Unit, closeCallback: => Unit): Unit = {
+  def show[T](param: Parameter[T], insertCallback: () => Unit, closeCallback: => Unit, themeCallback: () => Unit): Unit = {
     val title = "Configure HAMR Code Generation Options"
     val dialog = new JDialog(new JFrame(title), title, true) {
       override def getInsets: Insets = {
@@ -181,6 +181,7 @@ object LogikaFormEx {
       dialog.dispose()
       closeCallback
     })
+    fh.themeButton.addActionListener(_ => themeCallback())
     addChangeListenerRec(f.logikaPanel, () => fh.okButton.setEnabled(f.isUIModified))
     panel.registerKeyboardAction(_ => {
       dialog.dispose()
