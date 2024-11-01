@@ -26,15 +26,13 @@ package org.sireum.forms
 
 import com.formdev.flatlaf.intellijthemes.{FlatDarkFlatIJTheme, FlatLightFlatIJTheme}
 import com.formdev.flatlaf.FlatLaf
-import com.jthemedetecor.OsThemeDetector
 
 import java.io.{ByteArrayOutputStream, PrintStream}
-import java.net.URLClassLoader
 import java.nio.file.Files
 import javax.swing.{JFrame, JOptionPane}
 
 object FormsApp extends App {
-  def init(isDark: Boolean = OsThemeDetector.getDetector.isDark): Unit = {
+  def init(isDark: Boolean = true): Unit = {
     FlatLaf.setup(if (isDark) new FlatDarkFlatIJTheme else new FlatLightFlatIJTheme)
   }
 

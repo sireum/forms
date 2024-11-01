@@ -49,8 +49,6 @@ val appJvm = moduleJvmPub(
   jvmIvyDeps = ISZ(
     "com.formdev:flatlaf:",
     "com.formdev:flatlaf-intellij-themes:",
-    "com.github.Dansoftowner:jSystemThemeDetector:",
-    "org.slf4j:slf4j-nop:",
     sireumJar.toUri
   ),
   pubOpt = None()
