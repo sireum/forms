@@ -84,13 +84,13 @@ object HAMRCodeGenFormEx {
                                 val maxArraySizeDefault: String = "100",
                                 var maxArraySizeValid: Boolean = true,
 
-                                var camkesOutputDir: String = "",
-                                val camkesOutputDirDefault: String = "",
-                                var camkesOutputDirValid: Boolean = true,
+                                var sel4OutputDir: String = "",
+                                val sel4OutputDirDefault: String = "",
+                                var sel4OutputDirValid: Boolean = true,
 
-                                var camkesAuxCodeDirs: String = "",
-                                val camkesAuxCodeDirsDefault: String = "",
-                                var camkesAuxCodeDirsValid: Boolean = true,
+                                var sel4AuxCodeDirs: String = "",
+                                val sel4AuxCodeDirsDefault: String = "",
+                                var sel4AuxCodeDirsValid: Boolean = true,
 
                                 var strictAadlMode: Boolean = false,
                                 val strictAadlModeDefault: Boolean = false,
@@ -213,10 +213,10 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     transpilerMaxStringSizeLabel, maxStringSize,
     transpilerCOutputLabel, slangOutputCDir, transpilerCOutputBrowseButton,
     transpilerAuxDirLabel, slangAuxCodeDirs, transpilerAuxBrowseButton)
-  val camkesOptions: Seq[JComponent with javax.accessibility.Accessible] = Seq(
-    camkesPanel,
-    camkesSeL4OutputLabel, camkesOutputDir, camkesSeL4OutputBrowseButton,
-    camkesAuxDirSeL4Label, camkesAuxCodeDirs, camkesAuxSeL4BrowseButton)
+  val sel4Options: Seq[JComponent with javax.accessibility.Accessible] = Seq(
+    camkesMicrokitPanel,
+    seL4OutputLabel, sel4OutputDir, seL4OutputBrowseButton,
+    sel4AuxCodeDirLabel, sel4AuxCodeDirs, sel4AuxCodeDirsBrowseButton)
   val ros2Options: Seq[JComponent with javax.accessibility.Accessible] = Seq(
     ros2OptionsPanel,
     ros2NodesLanguageLabel, ros2NodesLanguage,
@@ -224,7 +224,7 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     ros2WorkspaceDirectoryLabel, ros2OutputWorkspaceDir, ros2Ros2DirectoryButton,
     ros2Ros2DirectoryLabel, ros2Dir, ros2Ros2DirectoryButton)
   val options: Seq[Seq[JComponent with javax.accessibility.Accessible]] = Seq(
-    slangOptions, transpilerOptions, camkesOptions, ros2Options)
+    slangOptions, transpilerOptions, sel4Options, ros2Options)
 
   def setVisible(components: Seq[JComponent with javax.accessibility.Accessible]*): Unit = {
     for (o <- options; c <- o) {
@@ -236,9 +236,10 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     platform.getSelectedItem.toString match {
       case "JVM" => setVisible(slangOptions)
       case "MacOS" | "Linux" | "Cygwin" => setVisible(slangOptions, transpilerOptions)
-      case "seL4" => setVisible(slangOptions, transpilerOptions, camkesOptions)
-      case "seL4_Only" | "seL4_TB" => setVisible(camkesOptions)
+      case "seL4" => setVisible(slangOptions, transpilerOptions, sel4Options)
+      case "seL4_Only" | "seL4_TB" => setVisible(sel4Options)
       case "ros2" => setVisible(ros2Options)
+      case "Microkit" => setVisible(sel4Options)
     }
 
     pack()
@@ -255,8 +256,8 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     bitWidth.setSelectedItem(currentStore.bitWidth)
     maxStringSize.setText(currentStore.maxStringSize)
     maxArraySize.setText(currentStore.maxArraySize)
-    camkesOutputDir.setText(currentStore.camkesOutputDir)
-    camkesAuxCodeDirs.setText(currentStore.camkesAuxCodeDirs)
+    sel4OutputDir.setText(currentStore.sel4OutputDir)
+    sel4AuxCodeDirs.setText(currentStore.sel4AuxCodeDirs)
     strictAadlMode.setSelected(currentStore.strictAadlMode)
     ros2OutputWorkspaceDir.setText(currentStore.ros2OutputWorkspaceDir)
     ros2Dir.setText(currentStore.ros2Dir)
@@ -297,9 +298,9 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
 
     def updateMaxStringSizeCust(): Unit = {}
 
-    def updateCamkesOutputDirCust(): Unit = {}
+    def updateSel4OutputDirCust(): Unit = {}
 
-    def updateCamkesAuxCodeDirsCust(): Unit = {}
+    def updateSel4AuxCodeDirsCust(): Unit = {}
 
     def updateStrictAadlModeCust(): Unit = {}
 
@@ -424,18 +425,18 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
       }
     }
 
-    def updateCamkesOutputDir(): Unit = {
-      val value = camkesOutputDir.getText
-      currentStore.camkesOutputDir = value
-      camkesOutputDir.setForeground(fgColor)
-      updateCamkesOutputDirCust()
+    def updateSel4OutputDir(): Unit = {
+      val value = sel4OutputDir.getText
+      currentStore.sel4OutputDir = value
+      sel4OutputDir.setForeground(fgColor)
+      updateSel4OutputDirCust()
     }
 
-    def updateCamkesAuxCodeDirs(): Unit = {
-      val value = camkesAuxCodeDirs.getText
-      currentStore.camkesAuxCodeDirs = value
-      camkesAuxCodeDirs.setForeground(fgColor)
-      updateCamkesAuxCodeDirsCust()
+    def updateSel4AuxCodeDirs(): Unit = {
+      val value = sel4AuxCodeDirs.getText
+      currentStore.sel4AuxCodeDirs = value
+      sel4AuxCodeDirs.setForeground(fgColor)
+      updateSel4AuxCodeDirsCust()
     }
 
     def updateStrictAadlMode(): Unit = {
@@ -518,8 +519,8 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     bitWidth.addActionListener((e: ActionEvent) => updateBitWidth())
     addChangeListener(maxStringSize.getDocument, updateMaxStringSize _)
     addChangeListener(maxArraySize.getDocument, updateMaxArraySize _)
-    addChangeListener(camkesOutputDir.getDocument, updateCamkesOutputDir _)
-    addChangeListener(camkesAuxCodeDirs.getDocument, updateCamkesAuxCodeDirs _)
+    addChangeListener(sel4OutputDir.getDocument, updateSel4OutputDir _)
+    addChangeListener(sel4AuxCodeDirs.getDocument, updateSel4AuxCodeDirs _)
     strictAadlMode.addChangeListener(_ => updateStrictAadlMode())
     addChangeListener(ros2OutputWorkspaceDir.getDocument, updateRos2OutputWorkspaceDir _)
     addChangeListener(ros2Dir.getDocument, updateRos2Dir _)
@@ -532,8 +533,8 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     addFileChooser(slangOutputDirectoryButton, slangOutputDir)
     addFileChooser(transpilerCOutputBrowseButton, slangOutputCDir)
     addFileChooser(transpilerAuxBrowseButton, slangAuxCodeDirs)
-    addFileChooser(camkesSeL4OutputBrowseButton, camkesOutputDir)
-    addFileChooser(camkesAuxSeL4BrowseButton, camkesAuxCodeDirs)
+    addFileChooser(seL4OutputBrowseButton, sel4OutputDir)
+    addFileChooser(sel4AuxCodeDirsBrowseButton, sel4AuxCodeDirs)
     addFileChooser(ros2WorkspaceDirectoryButton, ros2OutputWorkspaceDir)
     addFileChooser(ros2Ros2DirectoryButton, ros2Dir)
   }
@@ -557,8 +558,8 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
       initialStore(currentStore.platform).bitWidth != currentStore.bitWidth ||
       initialStore(currentStore.platform).maxStringSize != currentStore.maxStringSize ||
       initialStore(currentStore.platform).maxArraySize != currentStore.maxArraySize ||
-      initialStore(currentStore.platform).camkesOutputDir != currentStore.camkesOutputDir ||
-      initialStore(currentStore.platform).camkesAuxCodeDirs != currentStore.camkesAuxCodeDirs ||
+      initialStore(currentStore.platform).sel4OutputDir != currentStore.sel4OutputDir ||
+      initialStore(currentStore.platform).sel4AuxCodeDirs != currentStore.sel4AuxCodeDirs ||
       initialStore(currentStore.platform).strictAadlMode != currentStore.strictAadlMode ||
       initialStore(currentStore.platform).ros2OutputWorkspaceDir != currentStore.ros2OutputWorkspaceDir ||
       initialStore(currentStore.platform).ros2Dir != currentStore.ros2Dir ||
@@ -579,8 +580,8 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
       currentStore.bitWidthValid &&
       currentStore.maxStringSizeValid &&
       currentStore.maxArraySizeValid &&
-      currentStore.camkesOutputDirValid &&
-      currentStore.camkesAuxCodeDirsValid &&
+      currentStore.sel4OutputDirValid &&
+      currentStore.sel4AuxCodeDirsValid &&
       currentStore.ros2OutputWorkspaceDirValid &&
       currentStore.ros2DirValid &&
       currentStore.ros2NodesLanguageValid &&
@@ -648,11 +649,11 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     if (currentStore.maxArraySize != currentStore.maxArraySizeDefault) {
        args = args :+ "--max-array-size" :+ currentStore.maxArraySize
     }
-    if (currentStore.camkesOutputDir != currentStore.camkesOutputDirDefault) {
-       args = args :+ "--camkes-output-dir" :+ currentStore.camkesOutputDir
+    if (currentStore.sel4OutputDir != currentStore.sel4OutputDirDefault) {
+       args = args :+ "--sel4-output-dir" :+ currentStore.sel4OutputDir
     }
-    if (currentStore.camkesAuxCodeDirs != currentStore.camkesAuxCodeDirsDefault) {
-       args = args :+ "--camkes-aux-code-dirs" :+ currentStore.camkesAuxCodeDirs
+    if (currentStore.sel4AuxCodeDirs != currentStore.sel4AuxCodeDirsDefault) {
+       args = args :+ "--sel4-aux-code-dirs" :+ currentStore.sel4AuxCodeDirs
     }
     if (currentStore.strictAadlMode != currentStore.strictAadlModeDefault) {
        args = args :+ "--strict-aadl-mode"

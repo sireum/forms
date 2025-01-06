@@ -45,8 +45,8 @@ object HAMRUtil {
     store.bitWidth = o.bitWidth.string.native
     store.maxStringSize = o.maxStringSize.string.native
     store.maxArraySize = o.maxArraySize.string.native
-    store.camkesOutputDir = if (o.camkesOutputDir.nonEmpty) o.camkesOutputDir.get.native else ""
-    store.camkesAuxCodeDirs = st"""${(o.camkesAuxCodeDirs, Os.pathSep)}""".render.native
+    store.sel4OutputDir = if (o.sel4OutputDir.nonEmpty) o.sel4OutputDir.get.native else ""
+    store.sel4AuxCodeDirs = st"""${(o.sel4AuxCodeDirs, Os.pathSep)}""".render.native
     store.strictAadlMode = o.strictAadlMode
     store.ros2OutputWorkspaceDir = if (o.ros2OutputWorkspaceDir.nonEmpty) o.ros2OutputWorkspaceDir.get.native else ""
     store.ros2Dir = if (o.ros2Dir.nonEmpty) o.ros2Dir.get.native else ""
