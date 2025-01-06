@@ -4,7 +4,7 @@ import org.sireum.Cli
 import org.sireum._
 
 object HAMRUtil {
-
+ 
 
 // BEGIN build option store
   def decasePlatform(e: Cli.SireumHamrSysmlCodegenHamrPlatform.Type): Predef.String = {
