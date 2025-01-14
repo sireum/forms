@@ -387,7 +387,7 @@ abstract class LogikaFormEx[T] extends LogikaForm {
 
     def updateBranchParPredComp(): Unit = {
       val ctext = branchParCompTextField.getText
-      validBranchParComp = parseGe(ctext, 10).nonEmpty
+      validBranchParComp = parseGe(ctext, 0).nonEmpty
       branchParCompLabel.setForeground(if (validBranchParComp) fgColor else Color.red)
       branchParCompTextField.setToolTipText(if (validBranchParComp) "OK" else "Must be at least 0")
     }
