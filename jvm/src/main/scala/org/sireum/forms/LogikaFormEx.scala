@@ -92,6 +92,8 @@ object LogikaFormEx {
   var rwTrace: Boolean = true
   var rwMax: Int = 100
   var rwPar: Boolean = true
+  var branchParNum: Int = 2
+  var branchParComp: Int = 10
   var rwEvalTrace: Boolean = true
   var validRLimit: Boolean = true
   var validTimeout: Boolean = true
@@ -101,6 +103,8 @@ object LogikaFormEx {
   var validSmt2ValidOpts: Boolean = true
   var validSmt2SatOpts: Boolean = true
   var validRwMax: Boolean = true
+  var validBranchParNum: Boolean = true
+  var validBranchParComp: Boolean = true
   var fgColor: Color = _
 
   def parseGe(text: String, min: Long): Option[Long] =
@@ -202,7 +206,7 @@ abstract class LogikaFormEx[T] extends LogikaForm {
 
   def isUIModified: Boolean =
     validTimeout && validRLimit && validHintMaxColumn && validSmt2ValidOpts && validSmt2SatOpts &&
-      validLoopBound && validRecursionBound && validRwMax &&
+      validLoopBound && validRecursionBound && validRwMax && validBranchParNum && validBranchParComp &&
       (backgroundCheckBox.isSelected != backgroundAnalysis ||
         rlimitTextField.getText != rlimit.toString ||
         timeoutTextField.getText != timeout.toString ||
@@ -245,7 +249,9 @@ abstract class LogikaFormEx[T] extends LogikaForm {
         rwTraceCheckBox.isSelected != rwTrace ||
         rwMaxTextField.getText != rwMax.toString ||
         rwParCheckBox.isSelected != rwPar ||
-        rwEvalTraceCheckBox.isSelected != rwEvalTrace)
+        rwEvalTraceCheckBox.isSelected != rwEvalTrace ||
+        branchParNumTextField.getText != branchParNum.toString ||
+        branchParCompTextField.getText != branchParComp.toString)
 
   def selectedFPRoundingMode: String = {
     if (fpRNERadioButton.isSelected) "RNE"
@@ -372,6 +378,20 @@ abstract class LogikaFormEx[T] extends LogikaForm {
       rwMaxTextField.setToolTipText(if (validRwMax) "OK" else "Must be at least 1.")
     }
 
+    def updateBranchParPredNum(): Unit = {
+      val ntext = branchParNumTextField.getText
+      validBranchParNum = parseGe(ntext, 2).nonEmpty
+      branchParNumLabel.setForeground(if (validBranchParNum) fgColor else Color.red)
+      branchParNumTextField.setToolTipText(if (validBranchParNum) "OK" else "Must be at least 2")
+    }
+
+    def updateBranchParPredComp(): Unit = {
+      val ctext = branchParCompTextField.getText
+      validBranchParComp = parseGe(ctext, 10).nonEmpty
+      branchParCompLabel.setForeground(if (validBranchParComp) fgColor else Color.red)
+      branchParCompTextField.setToolTipText(if (validBranchParComp) "OK" else "Must be at least 0")
+    }
+
     updateUI()
 
     fgColor = logoLabel.getForeground
@@ -487,6 +507,22 @@ abstract class LogikaFormEx[T] extends LogikaForm {
       override def removeUpdate(e: DocumentEvent): Unit = updateRwMax()
     })
 
+    branchParNumTextField.getDocument.addDocumentListener(new DocumentListener {
+      override def insertUpdate(e: DocumentEvent): Unit = updateBranchParPredNum()
+
+      override def removeUpdate(e: DocumentEvent): Unit = updateBranchParPredNum()
+
+      override def changedUpdate(e: DocumentEvent): Unit = updateBranchParPredNum()
+    })
+
+    branchParCompTextField.getDocument.addDocumentListener(new DocumentListener {
+      override def insertUpdate(e: DocumentEvent): Unit = updateBranchParPredComp()
+
+      override def removeUpdate(e: DocumentEvent): Unit = updateBranchParPredComp()
+
+      override def changedUpdate(e: DocumentEvent): Unit = updateBranchParPredComp()
+    })
+
     updateSymExe()
     updateHints()
     updateHintMaxColumn()
@@ -495,6 +531,8 @@ abstract class LogikaFormEx[T] extends LogikaForm {
     updateInfoFlow()
     updateCoverage()
     updateRwMax()
+    updateBranchParPredNum()
+    updateBranchParPredComp()
 
     logikaPanel
   }
@@ -543,6 +581,8 @@ abstract class LogikaFormEx[T] extends LogikaForm {
     rwMax = parsePosInteger(rwMaxTextField.getText).getOrElse(rwMax)
     rwPar = rwParCheckBox.isSelected
     rwEvalTrace = rwEvalTraceCheckBox.isSelected
+    branchParNum = parseGe(branchParNumTextField.getText, 2).getOrElse(branchParNum).toInt
+    branchParComp = parseGe(branchParCompTextField.getText, 0).getOrElse(branchParComp).toInt
   }
 
   def updateUI(): Unit = {
@@ -613,6 +653,8 @@ abstract class LogikaFormEx[T] extends LogikaForm {
     rwMaxTextField.setText(rwMax.toString)
     rwParCheckBox.setSelected(rwPar)
     rwEvalTraceCheckBox.setSelected(rwEvalTrace)
+    branchParNumTextField.setText(branchParNum.toString)
+    branchParCompTextField.setText(branchParComp.toString)
   }
 
   def parseSmt2Opts(text: String): Option[String] = {
