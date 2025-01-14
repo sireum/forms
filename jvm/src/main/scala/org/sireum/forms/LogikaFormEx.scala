@@ -581,8 +581,8 @@ abstract class LogikaFormEx[T] extends LogikaForm {
     rwMax = parsePosInteger(rwMaxTextField.getText).getOrElse(rwMax)
     rwPar = rwParCheckBox.isSelected
     rwEvalTrace = rwEvalTraceCheckBox.isSelected
-    branchParNum = parseGe(branchParNumTextField.getText, 2).getOrElse(branchParNum).toInt
-    branchParComp = parseGe(branchParCompTextField.getText, 0).getOrElse(branchParComp).toInt
+    branchParNum = parseGe(branchParNumTextField.getText, 2).getOrElse(branchParNum.toLong).intValue
+    branchParComp = parseGe(branchParCompTextField.getText, 0).getOrElse(branchParComp.toLong).intValue
   }
 
   def updateUI(): Unit = {
