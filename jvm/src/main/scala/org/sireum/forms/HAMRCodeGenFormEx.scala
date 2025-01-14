@@ -24,12 +24,14 @@
  */
 package org.sireum.forms
 
-import java.awt.{Color, Insets}
+import org.sireum.forms.HAMRCodeGenFormEx._
+
 import java.awt.event.{ActionEvent, KeyEvent}
+import java.awt.{Color, Insets}
+import java.io.File
+import javax.swing._
 import javax.swing.event.{DocumentEvent, DocumentListener}
 import javax.swing.text.Document
-import javax.swing._
-import HAMRCodeGenFormEx._
 
 object HAMRCodeGenFormEx {
 
@@ -497,9 +499,18 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
       })
     }
 
-    def addFileChooser(button: JButton, tf: JTextField): Unit = {
+    def addFileChooser(chooserType: Int, button: JButton, tf: JTextField): Unit = {
+      assert(chooserType == JFileChooser.DIRECTORIES_ONLY || chooserType == JFileChooser.FILES_AND_DIRECTORIES || chooserType == JFileChooser.FILES_ONLY)
       button.addActionListener((_: ActionEvent) => {
-        val fileChooser = new JFileChooser
+        val initial: Option[String] =
+          if (tf.getText.nonEmpty) {
+            if (new File(tf.getText).exists()) Some(tf.getText)
+            else if (new File(anchorPath, tf.getText).exists()) new Some(new File(anchorPath, tf.getText).getCanonicalPath)
+            else None
+          }
+          else Some(anchorPath)
+        val fileChooser = if (initial.nonEmpty) new JFileChooser(initial.get) else new JFileChooser()
+        fileChooser.setFileSelectionMode(chooserType);
         val result = fileChooser.showOpenDialog(null)
         if (result == JFileChooser.APPROVE_OPTION) {
           tf.setText(new java.io.File(anchorPath).getCanonicalFile.toPath.relativize(fileChooser.getSelectedFile.getCanonicalFile.toPath).toString)
@@ -529,14 +540,14 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
 // END change listeners
 
 
-    addFileChooser(outputDirectoryButton, outputDir)
-    addFileChooser(slangOutputDirectoryButton, slangOutputDir)
-    addFileChooser(transpilerCOutputBrowseButton, slangOutputCDir)
-    addFileChooser(transpilerAuxBrowseButton, slangAuxCodeDirs)
-    addFileChooser(seL4OutputBrowseButton, sel4OutputDir)
-    addFileChooser(sel4AuxCodeDirsBrowseButton, sel4AuxCodeDirs)
-    addFileChooser(ros2WorkspaceDirectoryButton, ros2OutputWorkspaceDir)
-    addFileChooser(ros2Ros2DirectoryButton, ros2Dir)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, outputDirectoryButton, outputDir)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, slangOutputDirectoryButton, slangOutputDir)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, transpilerCOutputBrowseButton, slangOutputCDir)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, transpilerAuxBrowseButton, slangAuxCodeDirs)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, seL4OutputBrowseButton, sel4OutputDir)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, sel4AuxCodeDirsBrowseButton, sel4AuxCodeDirs)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, ros2WorkspaceDirectoryButton, ros2OutputWorkspaceDir)
+    addFileChooser(JFileChooser.DIRECTORIES_ONLY, ros2Ros2DirectoryButton, ros2Dir)
   }
 
   def isValidCust: Boolean = {
