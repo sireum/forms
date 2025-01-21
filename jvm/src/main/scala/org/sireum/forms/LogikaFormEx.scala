@@ -92,8 +92,8 @@ object LogikaFormEx {
   var rwTrace: Boolean = true
   var rwMax: Int = 100
   var rwPar: Boolean = true
-  var branchParNum: Int = 2
-  var branchParComp: Int = 10
+  var branchParNum: Int = 3
+  var branchParComp: Int = 16
   var rwEvalTrace: Boolean = true
   var validRLimit: Boolean = true
   var validTimeout: Boolean = true
