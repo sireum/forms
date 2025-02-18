@@ -111,7 +111,10 @@ object HAMRCodeGenFormEx {
 
                                 var ros2LaunchLanguage: String = "Python",
                                 val ros2LaunchLanguageDefault: String = "Python",
-                                var ros2LaunchLanguageValid: Boolean = true)
+                                var ros2LaunchLanguageValid: Boolean = true,
+
+                                var invertTopicBinding: Boolean = false,
+                                val invertTopicBindingDefault: Boolean = false)
 
 // END CodegenOptionStore
 
@@ -265,6 +268,7 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     ros2Dir.setText(currentStore.ros2Dir)
     ros2NodesLanguage.setSelectedItem(currentStore.ros2NodesLanguage)
     ros2LaunchLanguage.setSelectedItem(currentStore.ros2LaunchLanguage)
+    invertTopicBinding.setSelected(currentStore.invertTopicBinding)
 // END update ui after platform change
   }
 
@@ -305,6 +309,8 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     def updateSel4AuxCodeDirsCust(): Unit = {}
 
     def updateStrictAadlModeCust(): Unit = {}
+
+    def updateInvertTopicBindingCust(): Unit = {}
 
     def updateRos2DirCust(): Unit = {}
 
@@ -487,6 +493,11 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
         updateRos2LaunchLanguageCust()
       }
     }
+
+    def updateInvertTopicBinding(): Unit = {
+      currentStore.invertTopicBinding = invertTopicBinding.isSelected
+      updateInvertTopicBindingCust()
+    }
 // END init additions
 
     def addChangeListener(d: Document, f: () => Unit): Unit = {
@@ -537,6 +548,7 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     addChangeListener(ros2Dir.getDocument, updateRos2Dir _)
     ros2NodesLanguage.addActionListener((e: ActionEvent) => updateRos2NodesLanguage())
     ros2LaunchLanguage.addActionListener((e: ActionEvent) => updateRos2LaunchLanguage())
+    invertTopicBinding.addChangeListener(_ => updateInvertTopicBinding())
 // END change listeners
 
 
@@ -575,7 +587,8 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
       initialStore(currentStore.platform).ros2OutputWorkspaceDir != currentStore.ros2OutputWorkspaceDir ||
       initialStore(currentStore.platform).ros2Dir != currentStore.ros2Dir ||
       initialStore(currentStore.platform).ros2NodesLanguage != currentStore.ros2NodesLanguage ||
-      initialStore(currentStore.platform).ros2LaunchLanguage != currentStore.ros2LaunchLanguage)
+      initialStore(currentStore.platform).ros2LaunchLanguage != currentStore.ros2LaunchLanguage ||
+      initialStore(currentStore.platform).invertTopicBinding != currentStore.invertTopicBinding)
   }
 // END hasChanges
 
@@ -680,6 +693,9 @@ class HAMRCodeGenFormEx(val anchorPath: String, pack: () => Unit) extends HAMRCo
     }
     if (currentStore.ros2LaunchLanguage != currentStore.ros2LaunchLanguageDefault) {
        args = args :+ "--ros2-launch-language" :+ currentStore.ros2LaunchLanguage
+    }
+    if (currentStore.invertTopicBinding != currentStore.invertTopicBindingDefault) {
+       args = args :+ "--invert-topic-binding"
     }
 
     updateInitialStore()

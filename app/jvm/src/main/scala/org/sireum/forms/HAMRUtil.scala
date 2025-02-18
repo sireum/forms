@@ -4,7 +4,7 @@ import org.sireum.Cli
 import org.sireum._
 
 object HAMRUtil {
- 
+
 
 // BEGIN build option store
   def decasePlatform(e: Cli.SireumHamrSysmlCodegenHamrPlatform.Type): Predef.String = {
@@ -52,6 +52,7 @@ object HAMRUtil {
     store.ros2Dir = if (o.ros2Dir.nonEmpty) o.ros2Dir.get.native else ""
     store.ros2NodesLanguage = decaseRos2NodesLanguage(o.ros2NodesLanguage)
     store.ros2LaunchLanguage = decaseRos2LaunchLanguage(o.ros2LaunchLanguage)
+    store.invertTopicBinding = o.invertTopicBinding
     return store
   }
 // END build option store
