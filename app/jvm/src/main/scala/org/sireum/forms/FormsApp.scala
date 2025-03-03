@@ -164,7 +164,7 @@ object FormsApp extends App {
 
       for (platform <- Cli.SireumHamrSysmlCodegenHamrPlatform.elements) {
         if (!initialStore.contains(HAMRUtil.decasePlatform(platform))) {
-          initialStore = initialStore + (HAMRUtil.decasePlatform(platform) -> HAMRUtil.buildHamrOptionStore(defaultOptions(platform = platform)))
+          initialStore = initialStore + (HAMRUtil.decasePlatform(platform) ~> HAMRUtil.buildHamrOptionStore(defaultOptions(platform = platform)))
         }
       }
 
