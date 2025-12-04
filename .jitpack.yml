@@ -1,8 +1,9 @@
 before_install:
-  - curl -JLOs https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
+  - rm -fR bin versions.properties
+  - curl -JLO https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
   - mkdir bin
-  - curl -JLso bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh
-  - curl -JLso bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
+  - curl -JLo bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh
+  - curl -JLo bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
   - cat versions.properties
   - chmod +x bin/init.sh bin/sireum
   - SIREUM_NO_SETUP=true bin/init.sh
