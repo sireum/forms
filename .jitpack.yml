@@ -1,10 +1,10 @@
 jdk:
   - oraclejdk17
 before_install:
-  - curl -JLso init.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
+  - curl -JLOs https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
+  - mkdir bin
   - curl -JLso bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh
   - curl -JLso bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
-  - cat init.properties >> versions.properties
   - cat versions.properties
   - chmod +x bin/init.sh bin/sireum
   - SIREUM_NO_SETUP=true bin/init.sh
