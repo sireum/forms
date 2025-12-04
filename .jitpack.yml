@@ -1,5 +1,5 @@
 before_install:
-  - sdk install java 25.0.1.fx-librca
+  - sdk install java 25.0.1-oracle
   - curl -JLOs https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
   - mkdir bin
   - curl -JLso bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh
