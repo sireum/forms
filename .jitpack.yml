@@ -1,4 +1,5 @@
 before_install:
+  - set -x
   - rm -fR bin versions.properties
   - curl -JLO https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
   - mkdir bin
@@ -8,6 +9,7 @@ before_install:
   - chmod +x bin/init.sh bin/sireum
   - SIREUM_NO_SETUP=true bin/init.sh
 install:
+  - set -x
   - unset JAVA_TOOL_OPTIONS
   - bin/sireum proyek publish --target jvm . org.sireum.forms
   - rm -fR lib/cache
