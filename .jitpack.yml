@@ -1,5 +1,4 @@
 before_install:
-  - sdk install java 25.0.1-oracle
   - curl -JLOs https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
   - mkdir bin
   - curl -JLso bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh
@@ -9,5 +8,5 @@ before_install:
   - SIREUM_NO_SETUP=true bin/init.sh
 install:
   - unset JAVA_TOOL_OPTIONS
-  - SIREUM_PROVIDED_JAVA=true bin/sireum proyek publish --target jvm . org.sireum.forms
+  - bin/sireum proyek publish --target jvm . org.sireum.forms
   - rm -fR lib/cache
