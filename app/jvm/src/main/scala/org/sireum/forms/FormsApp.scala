@@ -140,7 +140,14 @@ object FormsApp extends App {
             val oldOut = System.out
             val out = new ByteArrayOutputStream()
             System.setOut(new PrintStream(out))
-            val splits = ops.StringOps(ops.StringOps(ops.StringOps(ops.StringOps(fileOptionString).replaceAllChars('␣', ' ')).replaceAllLiterally("  ", " ")).replaceAllLiterally("\t", " ")).split(c => c == C(' '))
+            val splits = ops.StringOps(
+              ops.StringOps(
+                ops.StringOps(
+                  ops.StringOps(fileOptionString)
+                    .replaceAllChars('␣', ' '))
+                  .replaceAllLiterally("  ", " "))
+                .replaceAllLiterally("\t", " "))
+              .split(c => c == C(' '))
             Cli(Os.pathSepChar).parseSireumHamrSysmlCodegen(splits, 0) match {
               case Some(fileOption: Cli.SireumHamrSysmlCodegenOption) =>
                 cli.HAMR.mergeOptionsM(defaultOptions, fileOption, splits) match {
