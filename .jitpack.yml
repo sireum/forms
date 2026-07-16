@@ -1,10 +1,13 @@
 before_install:
   - set -x
-  - rm -fR bin versions.properties
-  - curl -JLO https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
-  - mkdir bin
+  # NOTE: do not delete bin/ (it contains proyek's project definition bin/project.cmd) and
+  # append kekinian's versions.properties to this repo's copy rather than replacing it
+  # (the repo's copy pins forms-specific dependencies such as forms_rt and flatlaf)
+  - rm -f bin/init.sh bin/sireum init.properties
+  - curl -JLo init.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
   - curl -JLo bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh
   - curl -JLo bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
+  - cat init.properties >> versions.properties
   - cat versions.properties
   - chmod +x bin/init.sh bin/sireum
   - SIREUM_NO_SETUP=true bin/init.sh
