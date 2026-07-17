@@ -4,15 +4,19 @@ before_install:
   # append kekinian's versions.properties to this repo's copy rather than replacing it
   # (the repo's copy pins forms-specific dependencies such as forms_rt and flatlaf)
   - rm -f bin/init.sh bin/sireum init.properties
-  - curl -JLo init.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties
-  - curl -JLo bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh
-  - curl -JLo bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum
+  - curl -fJLo init.properties https://raw.githubusercontent.com/sireum/kekinian/master/versions.properties || echo "versions.properties curl exit $?"
+  - curl -fJLo bin/init.sh https://raw.githubusercontent.com/sireum/kekinian/master/bin/init.sh || echo "init.sh curl exit $?"
+  - curl -fJLo bin/sireum https://raw.githubusercontent.com/sireum/kekinian/master/bin/sireum || echo "sireum curl exit $?"
   - cat init.properties >> versions.properties
-  - cat versions.properties
   - chmod +x bin/init.sh bin/sireum
-  - SIREUM_NO_SETUP=true bin/init.sh
+  # diagnostics: trace init.sh to see exactly where/why it stops (its JDK download from
+  # download.bell-sw.com is suspected to be unreachable from JitPack builders)
+  - SIREUM_NO_SETUP=true bash -x bin/init.sh; echo "init.sh exit $?"
+  - ls -la bin bin/linux bin/linux/java/bin lib || true
+  - ls -l bin/sireum.jar && head -c 100 bin/sireum.jar | cat -v || true
+  - bin/linux/java/bin/java -version || echo "bundled java unusable"
 install:
   - set -x
   - unset JAVA_TOOL_OPTIONS
-  - bin/sireum proyek publish --target jvm . org.sireum.forms
+  - bash -x bin/sireum proyek publish --target jvm . org.sireum.forms; echo "sireum exit $?"
   - rm -fR lib/cache
